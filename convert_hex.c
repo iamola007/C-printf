@@ -71,7 +71,7 @@ unsigned char flags, int wid, int prec, unsigned char len)
 	if (HASH_FLAG == 1 && num != 0)
 		ret += _memcpy(output, lead, 2);
 
-	if (!(num == 0 && prec == 0)
+	if (!(num == 0 && prec == 0))
 		ret += convert_ubase(output, num, "0123456789ABCDEF",
 		flags, wid, prec);
 

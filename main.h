@@ -30,7 +30,7 @@
  */
 typedef struct buffer_s
 {
-	har *buffer;
+	char *buffer;
 	char *start;
 	unsigned int len;
 } buffer_t;
@@ -86,7 +86,7 @@ unsigned int convert_S(va_list args, buffer_t *output,
 unsigned char flags, int wid, int prec, unsigned char len);
 unsigned int convert_p(va_list args, buffer_t *output,
 unsigned char flags, int wid, int prec, unsigned char len);
-unsigned int convert_r(va_list args, buffer_t *output
+unsigned int convert_r(va_list args, buffer_t *output,
 unsigned char flags, int wid, int prec, unsigned char len);
 unsigned int convert_R(va_list args, buffer_t *output,
 unsigned char flags, int wid, int prec, unsigned char len);

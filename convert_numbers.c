@@ -55,7 +55,7 @@ unsigned char flags, int wid, int prec, unsigned char len)
 
 		/* Handle plus flag when zero flag is active */
 		if (ZERO_FLAG == 1 && PLUS_FLAG == 1 && d >= 0)
-			ret += _memcpy(output, &plus, 1)
+			ret += _memcpy(output, &plus, 1);
 		/*Print negative sign when zero flag is active */
 		if (ZERO_FLAG == 1 && d < 0)
 			ret += _memcpy(output, &neg, 1);

@@ -44,7 +44,7 @@ char *base, unsigned char flags, int wid, int prec)
 		}
 	}
 
-	digit = base[(num < 0 ? -1 : 1) * (num % size)]
+	digit = base[(num < 0 ? -1 : 1) * (num % size)];
 	_memcpy(output, &digit, 1);
 
 	return (ret);
