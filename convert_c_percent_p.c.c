@@ -1,90 +1,100 @@
 #include "main.h"
 
-void cleanup(va_list args, buffer_t *output);
-int run_printf(const char *format, va_list args, buffer_t *output);
-int _printf(const char *format, ...);
+unsigned int convert_c(va_list args, buffer_t *output,
+		unsigned char flags, int wid, int prec, unsigned char len);
+unsigned int convert_percent(va_list args, buffer_t *output,
+		unsigned char flags, int wid, int prec, unsigned char len);
+unsigned int convert_p(va_list args, buffer_t *output,
+		unsigned char flags, int wid, int prec, unsigned char len);
 
 /**
- * cleanup - Peforms cleanup operations for _printf.
- * @args: A va_list of arguments provided to _printf.
- * @output: A buffer_t struct.
- */
-void cleanup(va_list args, buffer_t *output)
-{
-	va_end(args);
-	write(1, output->start, output->len);
-	free_buffer(output);
-}
-
-/**
- * run_printf - Reads through the format string for _printf.
- * @format: Character string to print - may contain directives.
- * @output: A buffer_t struct containing a buffer.
- * @args: A va_list of arguments.
+ * convert_c - Converts an argument to an unsigned char and
+ *             stores it to a buffer contained in a struct.
+ * @args: A va_list pointing to the argument to be converted.
+ * @flags: Flag modifiers.
+ * @wid: A width modifier.
+ * @prec: A precision modifier.
+ * @len: A length modifier.
+ * @output: A buffer_t struct containing a character array.
  *
- * Return: The number of characters stored to output.
+ * Return: The number of bytes stored to the buffer.
  */
-int run_printf(const char *format, va_list args, buffer_t *output)
+unsigned int convert_c(va_list args, buffer_t *output,
+		unsigned char flags, int wid, int prec, unsigned char len)
 {
-	int i, wid, prec, ret = 0;
-	char tmp;
-	unsigned char flags, len;
-	unsigned int (*f)(va_list, buffer_t *,
-			unsigned char, int, int, unsigned char);
+	char c;
+	unsigned int ret = 0;
 
-	for (i = 0; *(format + i); i++)
-	{
-		len = 0;
-		if (*(format + i) == '%')
-		{
-			tmp = 0;
-			flags = handle_flags(format + i + 1, &tmp);
-			wid = handle_width(args, format + i + tmp + 1, &tmp);
-			prec = handle_precision(args, format + i + tmp + 1,
-					&tmp);
-			len = handle_length(format + i + tmp + 1, &tmp);
+	(void)prec;
+	(void)len;
 
-			f = handle_specifiers(format + i + tmp + 1);
-			if (f != NULL)
-			{
-				i += tmp + 1;
-				ret += f(args, output, flags, wid, prec, len);
-				continue;
-			}
-			else if (*(format + i + tmp + 1) == '\0')
-			{
-				ret = -1;
-				break;
-			}
-		}
-		ret += _memcpy(output, (format + i), 1);
-		i += (len != 0) ? 1 : 0;
-	}
-	cleanup(args, output);
+	c = va_arg(args, int);
+
+	ret += print_width(output, ret, flags, wid);
+	ret += _memcpy(output, &c, 1);
+	ret += print_neg_width(output, ret, flags, wid);
+
 	return (ret);
 }
 
 /**
- * _printf - Outputs a formatted string.
- * @format: Character string to print - may contain directives.
+ * convert_percent - Stores a percent sign to a
+ *                   buffer contained in a struct.
+ * @args: A va_list pointing to the argument to be converted.
+ * @flags: Flag modifiers.
+ * @wid: A width modifier.
+ * @prec: A precision modifier.
+ * @len: A length modifier.
+ * @output: A buffer_t struct containing a character array.
  *
- * Return: The number of characters printed.
+ * Return: The number of bytes stored to the buffer (always 1).
  */
-int _printf(const char *format, ...)
+unsigned int convert_percent(va_list args, buffer_t *output,
+		unsigned char flags, int wid, int prec, unsigned char len)
 {
-	buffer_t *output;
-	va_list args;
-	int ret;
+	char percent = '%';
+	unsigned int ret = 0;
 
-	if (format == NULL)
-		return (-1);
-	output = init_buffer();
-	if (output == NULL)
-		return (-1);
+	(void)args;
+	(void)prec;
+	(void)len;
 
-	va_start(args, format);
+	ret += print_width(output, ret, flags, wid);
+	ret += _memcpy(output, &percent, 1);
+	ret += print_neg_width(output, ret, flags, wid);
 
-	ret = run_printf(format, args, output);
+	return (ret);
+}
+
+/**
+ * convert_p - Converts the address of an argument to hex and
+ *             stores it to a buffer contained in a struct.
+ * @args: A va_list pointing to the argument to be converted.
+ * @flags: Flag modifiers.
+ * @wid: A width modifier.
+ * @prec: A precision modifier.
+ * @len: A length modifier.
+ * @output: A buffer_t struct containing a character array.
+ *
+ * Return: The number of bytes stored to the buffer.
+ */
+unsigned int convert_p(va_list args, buffer_t *output,
+		unsigned char flags, int wid, int prec, unsigned char len)
+{
+	char *null = "(nil)";
+	unsigned long int address;
+	unsigned int ret = 0;
+
+	(void)len;
+
+	address = va_arg(args, unsigned long int);
+	if (address == '\0')
+		return (_memcpy(output, null, 5));
+
+	flags |= 32;
+	ret += convert_ubase(output, address, "0123456789abcdef",
+			flags, wid, prec);
+	ret += print_neg_width(output, ret, flags, wid);
 
 	return (ret);
 }
